@@ -62,19 +62,11 @@ function activate(context) {
         });
 
         // Process LOAD commands
-        const loadRegex = /^LOAD .*/;
         lines.forEach((line, lineNumber) => {
             const trimmed = line.trim();
             if (trimmed.startsWith('LOAD')) {
-                const match = trimmed.match(loadRegex);
-                const modulename = trimmed.split(' ')[1].replace(/"/g, '');
-                if (!fs.existsSync(`${modulename}.stackm` || `${modulename}.stack`)) {
-                    diagnostics.push(new vscode.Diagnostic(
-                        new vscode.Range(lineNumber, 0, lineNumber, line.length),
-                        `Missing module implementation file: ${modulename}.stack`,
-                        vscode.DiagnosticSeverity.Error
-                    ));
-                }
+                const moduleArg = trimmed.slice(4).trim(); // Get part after LOAD
+                const match = moduleArg.match(/^"([^"]+)"|(\S+)/); // Handle quoted and unquoted module names
                 if (!match) {
                     diagnostics.push(new vscode.Diagnostic(
                         new vscode.Range(lineNumber, 0, lineNumber, line.length),
@@ -84,59 +76,52 @@ function activate(context) {
                     return;
                 }
 
-                const moduleName = match[1];
+                const moduleName = match[1] || match[2];
+                if (!moduleName) {
+                    diagnostics.push(new vscode.Diagnostic(
+                        new vscode.Range(lineNumber, 0, lineNumber, line.length),
+                        'Invalid LOAD syntax. Module name missing',
+                        vscode.DiagnosticSeverity.Error
+                    ));
+                    return;
+                }
+
                 const moduleBase = path.join(currentDir, moduleName);
                 const stackmPath = `${moduleBase}.stackm`;
                 const stackPath = `${moduleBase}.stack`;
 
-                // Check for required module files
-                if (!fs.existsSync(stackmPath)) {
+                // Check if both module files exist
+                let missingFiles = [];
+                if (!fs.existsSync(stackmPath)) missingFiles.push(`${moduleName}.stackm`);
+                if (!fs.existsSync(stackPath)) missingFiles.push(`${moduleName}.stack`);
+                if (missingFiles.length > 0) {
                     diagnostics.push(new vscode.Diagnostic(
                         new vscode.Range(lineNumber, 0, lineNumber, line.length),
-                        `Missing module metadata file: ${moduleName}.stackm`,
+                        `Missing module files: ${missingFiles.join(', ')}`,
+                        vscode.DiagnosticSeverity.Error
+                    ));
+                    return;
+                }
+
+                // Process module metadata (.stackm)
+                try {
+                    const stackmContent = fs.readFileSync(stackmPath, 'utf8');
+                    stackmContent.split('\n').forEach(moduleLine => {
+                        const trimmedLine = moduleLine.trim();
+                        if (trimmedLine.startsWith('EXTERN')) {
+                            trimmedLine.substring(6).trim().split(/\s+/).forEach(funcName => {
+                                if (funcName) functions.add(`${moduleName}.${funcName}`);
+                            });
+                        }
+                    });
+                } catch (err) {
+                    diagnostics.push(new vscode.Diagnostic(
+                        new vscode.Range(lineNumber, 0, lineNumber, line.length),
+                        `Error reading module metadata: ${err.message}`,
                         vscode.DiagnosticSeverity.Error
                     ));
                 }
 
-                if (!fs.existsSync(stackPath)) {
-                    diagnostics.push(new vscode.Diagnostic(
-                        new vscode.Range(lineNumber, 0, lineNumber, line.length),
-                        `Missing module implementation file: ${moduleName}.stack`,
-                        vscode.DiagnosticSeverity.Error
-                    ));
-                }
-
-                // Process module if files exist
-                if (fs.existsSync(stackmPath) && fs.existsSync(stackPath)) {
-                    try {
-                        // Read exported functions from .stackm
-                        const stackmContent = fs.readFileSync(stackmPath, 'utf8');
-                        stackmContent.split('\n').forEach(moduleLine => {
-                            const trimmedLine = moduleLine.trim();
-                            if (trimmedLine.startsWith('EXTERN')) {
-                                trimmedLine.substring(6).trim().split(/\s+/).forEach(funcName => {
-                                    if (funcName) functions.add(`${moduleName}.${funcName}`);
-                                });
-                            }
-                        });
-
-                        // Read implementation from .stack
-                        const stackContent = fs.readFileSync(stackPath, 'utf8');
-                        stackContent.split('\n').forEach(moduleLine => {
-                            const trimmedLine = moduleLine.trim();
-                            if (trimmedLine.endsWith(':')) {
-                                const funcName = trimmedLine.slice(0, -1).trim();
-                                functions.add(`${moduleName}.${funcName}`);
-                            }
-                        });
-                    } catch (err) {
-                        diagnostics.push(new vscode.Diagnostic(
-                            new vscode.Range(lineNumber, 0, lineNumber, line.length),
-                            `Error reading module: ${err.message}`,
-                            vscode.DiagnosticSeverity.Error
-                        ));
-                    }
-                }
                 modulesProcessed.add(moduleName);
             }
         });
@@ -168,7 +153,7 @@ function activate(context) {
                         } else {
                             diagnostics.push(new vscode.Diagnostic(
                                 new vscode.Range(lineNumber, 0, lineNumber, line.length),
-                                `Function not exported: ${fullName}`,
+                                `Function not exported by module: ${funcName}`,
                                 vscode.DiagnosticSeverity.Error
                             ));
                         }
