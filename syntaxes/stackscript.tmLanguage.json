@@ -1,0 +1,25 @@
+{
+    "scopeName": "source.stackscript",
+    "patterns": [
+        {
+            "match": "\\b(ADD|TOP|SUB|MUL|DIV|EXP|PUSH|POP|OUT|HALT|CALL|READ|SPREAD|JMP|JMPGT|JMPLT|JMPEQ|BOTOP|LOAD|CLEAR|COPY|DUP|SPUSH|PUD|SWAP|SPOUTV|S-SWAP|READFILE|WRITEFILE|APPENDFILE|DELETEFILE|CREATEFILE|CREATEFOLDER|DELETEFOLDER|SWAPMEM|CHOICE-1|CHOICE-2|RANDINT|RANDOM|SYSTEM|OUTV|TOP)\\b",
+            "name": "keyword.control.stackscript"
+        },
+        {
+            "match": "\\b\\d+\\b",
+            "name": "constant.numeric.stackscript"
+        },
+        {
+            "match": "\\b([A-Za-z_][A-Za-z0-9_]*):",
+            "name": "entity.name.function.stackscript"
+        },
+        {
+            "match": "ENDFUNC",
+            "name": "keyword.control.stackscript"
+        },
+        {
+            "match": ";.*",
+            "name": "comment.line.stackscript"
+        }
+    ]
+}

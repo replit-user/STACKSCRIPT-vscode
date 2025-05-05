@@ -1,0 +1,16 @@
+{
+    "HALT Instruction": {
+        "prefix": "halt",
+        "body": "HALT",
+        "description": "Insert HALT instruction"
+    },
+    "Function Template": {
+        "prefix": "func",
+        "body": [
+            "${1:function_name}:",
+            "\t$0",
+            "ENDFUNC"
+        ],
+        "description": "Create a new function"
+    }
+}

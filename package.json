@@ -1,0 +1,35 @@
+{
+    "name": "stackscript",
+    "displayName": "StackScript",
+    "description": "VS Code extension for StackScript language",
+    "version": "0.0.1",
+    "engines": {
+        "vscode": "^1.78.0"
+    },
+    "categories": [
+        "Programming Languages",
+        "Snippets",
+        "Linters"
+    ],
+    "contributes": {
+        "languages": [{
+            "id": "stackscript",
+            "aliases": ["StackScript", "stackscript"],
+            "extensions": [".stack"],
+            "configuration": "./language-configuration.json"
+        }],
+        "grammars": [{
+            "language": "stackscript",
+            "scopeName": "source.stackscript",
+            "path": "./syntaxes/stackscript.tmLanguage.json"
+        }],
+        "snippets": [{
+            "language": "stackscript",
+            "path": "./snippets/snippets.json"
+        }]
+    },
+    "activationEvents": [
+        "onLanguage:stackscript"
+    ],
+    "main": "./extension.js"
+}
