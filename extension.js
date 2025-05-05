@@ -62,7 +62,7 @@ function activate(context) {
         });
 
         // Process LOAD commands
-        const loadRegex = /^LOAD\s+"([^"]+)"/;
+        const loadRegex = /^LOAD .*/;
         lines.forEach((line, lineNumber) => {
             const trimmed = line.trim();
             if (trimmed.startsWith('LOAD')) {
