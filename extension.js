@@ -67,6 +67,14 @@ function activate(context) {
             const trimmed = line.trim();
             if (trimmed.startsWith('LOAD')) {
                 const match = trimmed.match(loadRegex);
+                const modulename = trimmed.split(' ')[1].replace(/"/g, '');
+                if (!fs.existsSync(`${modulename}.stackm` || `${modulename}.stack`)) {
+                    diagnostics.push(new vscode.Diagnostic(
+                        new vscode.Range(lineNumber, 0, lineNumber, line.length),
+                        `Missing module implementation file: ${modulename}.stack`,
+                        vscode.DiagnosticSeverity.Error
+                    ));
+                }
                 if (!match) {
                     diagnostics.push(new vscode.Diagnostic(
                         new vscode.Range(lineNumber, 0, lineNumber, line.length),

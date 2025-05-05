@@ -32,7 +32,7 @@
         }]
     },
     "activationEvents": [
-        "onLanguage:stackscript"
+        "*"
     ],
     "main": "./extension.js"
 }
