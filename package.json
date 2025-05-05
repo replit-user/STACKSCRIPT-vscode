@@ -1,7 +1,7 @@
 {
     "name": "stackscript",
-    "displayName": "StackScript",
-    "description": "VS Code extension for StackScript language",
+    "displayName": "STACKSCRIPT",
+    "description": "VS Code extension for STACKSCRIPT language",
     "version": "0.0.1",
     "repository": {
         "type": "git",
@@ -17,7 +17,7 @@
     "contributes": {
         "languages": [{
             "id": "stackscript",
-            "aliases": ["StackScript", "stackscript"],
+            "aliases": ["STACKSCRIPT", "stackscript"],
             "extensions": [".stack"],
             "configuration": "./language-configuration.json"
         }],
