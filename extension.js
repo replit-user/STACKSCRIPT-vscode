@@ -3,11 +3,9 @@ const fs = require('fs');
 const path = require('path');
 
 function activate(context) {
-    // Autocomplete
     const provider = vscode.languages.registerCompletionItemProvider('stackscript', {
         provideCompletionItems(document, position) {
             const completions = [];
-            // Opcodes
             const keywords = [
                 'ADD', 'SUB', 'MUL', 'DIV', 'EXP', 'PUSH', 'POP', 'OUT', 'HALT',
                 'CALL', 'READ', 'SPREAD', 'JMP', 'JMPGT', 'JMPLT', 'JMPEQ', 'BOTOP',
@@ -27,7 +25,6 @@ function activate(context) {
         }
     });
 
-    // Diagnostics (Error checking)
     const diagnosticCollection = vscode.languages.createDiagnosticCollection('stackscript');
     context.subscriptions.push(diagnosticCollection);
 
@@ -42,129 +39,151 @@ function activate(context) {
         const text = document.getText();
         const lines = text.split('\n');
         const functions = new Set();
-        let inFunction = false;
+        const modulesProcessed = new Set();
+        const currentDir = path.dirname(document.uri.fsPath);
+
+        // Validate EXTERN usage in main file
+        lines.forEach((line, lineNumber) => {
+            if (line.trim().startsWith('EXTERN')) {
+                diagnostics.push(new vscode.Diagnostic(
+                    new vscode.Range(lineNumber, 0, lineNumber, line.length),
+                    "EXTERN can only be used in module files",
+                    vscode.DiagnosticSeverity.Error
+                ));
+            }
+        });
 
         // Collect local functions
         lines.forEach((line, lineNumber) => {
             const trimmed = line.trim();
             if (trimmed.endsWith(':')) {
-                const funcName = trimmed.slice(0, -1).trim();
-                functions.add(funcName);
-                inFunction = true;
-            }
-            if (trimmed === 'ENDFUNC') {
-                inFunction = false;
+                functions.add(trimmed.slice(0, -1).trim());
             }
         });
 
         // Process LOAD commands
-        const currentDir = path.dirname(document.uri.fsPath);
-        const modulesToLoad = [];
-
-        // Find and validate LOAD commands
+        const loadRegex = /^LOAD\s+"([^"]+)"/;
         lines.forEach((line, lineNumber) => {
             const trimmed = line.trim();
             if (trimmed.startsWith('LOAD')) {
-                const match = trimmed.match("LOAD .*");
-                if (match) {
-                    const moduleName = match[1];
-                    const modulePath = path.join(currentDir, `${moduleName}.stackm`);
-                    modulesToLoad.push({ modulePath, lineNumber, originalLine: line });
-                } else {
-                    // Invalid LOAD syntax
-                    const range = new vscode.Range(
-                        new vscode.Position(lineNumber, 0),
-                        new vscode.Position(lineNumber, line.length)
-                    );
+                const match = trimmed.match(loadRegex);
+                if (!match) {
                     diagnostics.push(new vscode.Diagnostic(
-                        range,
-                        'Invalid LOAD syntax. Expected LOAD "filename"',
+                        new vscode.Range(lineNumber, 0, lineNumber, line.length),
+                        'Invalid LOAD syntax. Expected LOAD "modulename"',
+                        vscode.DiagnosticSeverity.Error
+                    ));
+                    return;
+                }
+
+                const moduleName = match[1];
+                const moduleBase = path.join(currentDir, moduleName);
+                const stackmPath = `${moduleBase}.stackm`;
+                const stackPath = `${moduleBase}.stack`;
+
+                // Check for required module files
+                if (!fs.existsSync(stackmPath)) {
+                    diagnostics.push(new vscode.Diagnostic(
+                        new vscode.Range(lineNumber, 0, lineNumber, line.length),
+                        `Missing module metadata file: ${moduleName}.stackm`,
                         vscode.DiagnosticSeverity.Error
                     ));
                 }
+
+                if (!fs.existsSync(stackPath)) {
+                    diagnostics.push(new vscode.Diagnostic(
+                        new vscode.Range(lineNumber, 0, lineNumber, line.length),
+                        `Missing module implementation file: ${moduleName}.stack`,
+                        vscode.DiagnosticSeverity.Error
+                    ));
+                }
+
+                // Process module if files exist
+                if (fs.existsSync(stackmPath) && fs.existsSync(stackPath)) {
+                    try {
+                        // Read exported functions from .stackm
+                        const stackmContent = fs.readFileSync(stackmPath, 'utf8');
+                        stackmContent.split('\n').forEach(moduleLine => {
+                            const trimmedLine = moduleLine.trim();
+                            if (trimmedLine.startsWith('EXTERN')) {
+                                trimmedLine.substring(6).trim().split(/\s+/).forEach(funcName => {
+                                    if (funcName) functions.add(`${moduleName}.${funcName}`);
+                                });
+                            }
+                        });
+
+                        // Read implementation from .stack
+                        const stackContent = fs.readFileSync(stackPath, 'utf8');
+                        stackContent.split('\n').forEach(moduleLine => {
+                            const trimmedLine = moduleLine.trim();
+                            if (trimmedLine.endsWith(':')) {
+                                const funcName = trimmedLine.slice(0, -1).trim();
+                                functions.add(`${moduleName}.${funcName}`);
+                            }
+                        });
+                    } catch (err) {
+                        diagnostics.push(new vscode.Diagnostic(
+                            new vscode.Range(lineNumber, 0, lineNumber, line.length),
+                            `Error reading module: ${err.message}`,
+                            vscode.DiagnosticSeverity.Error
+                        ));
+                    }
+                }
+                modulesProcessed.add(moduleName);
             }
         });
 
-        // Process modules
-        modulesToLoad.forEach(({ modulePath, lineNumber, originalLine }) => {
-            if (!fs.existsSync(modulePath)) {
-                // Module not found error
-                const range = new vscode.Range(
-                    new vscode.Position(lineNumber, 0),
-                    new vscode.Position(lineNumber, originalLine.length)
-                );
-                diagnostics.push(new vscode.Diagnostic(
-                    range,
-                    `Module not found: ${path.basename(modulePath)}`,
-                    vscode.DiagnosticSeverity.Error
-                ));
-            } else {
-                // Read module and collect EXTERN functions
-                try {
-                    const content = fs.readFileSync(modulePath, 'utf8');
-                    content.split('\n').forEach(moduleLine => {
-                        const trimmedLine = moduleLine.trim();
-                        if (trimmedLine.startsWith('EXTERN ')) {
-                            const funcName = trimmedLine.substring(7).trim();
-                            functions.add(funcName);
+        // Validate CALL instructions
+        lines.forEach((line, lineNumber) => {
+            const trimmed = line.trim();
+            if (trimmed.startsWith('CALL')) {
+                const match = trimmed.match(/^CALL\s+([\w.]+)/);
+                if (!match) {
+                    diagnostics.push(new vscode.Diagnostic(
+                        new vscode.Range(lineNumber, 0, lineNumber, line.length),
+                        'Invalid CALL syntax. Expected CALL [module.]function',
+                        vscode.DiagnosticSeverity.Error
+                    ));
+                    return;
+                }
+
+                const fullName = match[1];
+                if (!functions.has(fullName)) {
+                    if (fullName.includes('.')) {
+                        const [moduleName, funcName] = fullName.split('.');
+                        if (!modulesProcessed.has(moduleName)) {
+                            diagnostics.push(new vscode.Diagnostic(
+                                new vscode.Range(lineNumber, 0, lineNumber, line.length),
+                                `Module not loaded: ${moduleName}`,
+                                vscode.DiagnosticSeverity.Error
+                            ));
+                        } else {
+                            diagnostics.push(new vscode.Diagnostic(
+                                new vscode.Range(lineNumber, 0, lineNumber, line.length),
+                                `Function not exported: ${fullName}`,
+                                vscode.DiagnosticSeverity.Error
+                            ));
                         }
-                    });
-                } catch (err) {
-                    const range = new vscode.Range(
-                        new vscode.Position(lineNumber, 0),
-                        new vscode.Position(lineNumber, originalLine.length)
-                    );
-                    diagnostics.push(new vscode.Diagnostic(
-                        range,
-                        `Error reading module: ${err.message}`,
-                        vscode.DiagnosticSeverity.Error
-                    ));
+                    } else {
+                        diagnostics.push(new vscode.Diagnostic(
+                            new vscode.Range(lineNumber, 0, lineNumber, line.length),
+                            `Undefined function: ${fullName}`,
+                            vscode.DiagnosticSeverity.Error
+                        ));
+                    }
                 }
             }
         });
 
-        // Check for missing HALT
+        // HALT instruction check
         if (!text.includes('HALT')) {
             const lastLine = document.lineAt(document.lineCount - 1);
-            const range = new vscode.Range(lastLine.range.start, lastLine.range.end);
             diagnostics.push(new vscode.Diagnostic(
-                range,
+                lastLine.range,
                 'No HALT instruction found',
                 vscode.DiagnosticSeverity.Warning
             ));
         }
-
-        // Check function calls
-        lines.forEach((line, lineNumber) => {
-            const trimmed = line.trim();
-            if (trimmed.startsWith('CALL')) {
-                const match = trimmed.match(/^CALL\s+(\S+)/);
-                if (match) {
-                    const funcName = match[1];
-                    if (!functions.has(funcName)) {
-                        const range = new vscode.Range(
-                            new vscode.Position(lineNumber, 0),
-                            new vscode.Position(lineNumber, line.length)
-                        );
-                        diagnostics.push(new vscode.Diagnostic(
-                            range,
-                            `Undefined function: ${funcName}`,
-                            vscode.DiagnosticSeverity.Error
-                        ));
-                    }
-                } else {
-                    const range = new vscode.Range(
-                        new vscode.Position(lineNumber, 0),
-                        new vscode.Position(lineNumber, line.length)
-                    );
-                    diagnostics.push(new vscode.Diagnostic(
-                        range,
-                        'Invalid CALL syntax. Expected CALL functionName',
-                        vscode.DiagnosticSeverity.Error
-                    ));
-                }
-            }
-        });
 
         diagnosticCollection.set(document.uri, diagnostics);
     }
