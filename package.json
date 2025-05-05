@@ -1,7 +1,7 @@
 {
     "name": "stackscript",
-    "displayName": "STACKSCRIPT",
-    "description": "VS Code extension for STACKSCRIPT language",
+    "displayName": "StackScript",
+    "description": "VS Code extension for StackScript language",
     "version": "0.0.1",
     "repository": {
         "type": "git",

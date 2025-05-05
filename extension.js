@@ -65,7 +65,7 @@ function activate(context) {
         lines.forEach((line, lineNumber) => {
             const trimmed = line.trim();
             if (trimmed.startsWith('LOAD')) {
-                const match = trimmed.match(/^LOAD\s+"([^"]+)"/);
+                const match = trimmed.match("LOAD .*");
                 if (match) {
                     const moduleName = match[1];
                     const modulePath = path.join(currentDir, `${moduleName}.stackm`);
