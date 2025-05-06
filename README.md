@@ -1,1 +1,1 @@
-I had trouble uploading so just download it from here
+now you can download it right from vscode marketplace!
