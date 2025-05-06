@@ -3,6 +3,7 @@
     "displayName": "STACKSCRIPT",
     "description": "VS Code extension for STACKSCRIPT language",
     "version": "0.0.1",
+    "publisher": "STACKSCRIPT-official",
     "repository": {
         "type": "git",
         "url": "https://github.com/replit-user/STACKSCRIPT-vscode"},
