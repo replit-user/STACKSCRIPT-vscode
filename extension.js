@@ -3,6 +3,10 @@ const fs = require('fs');
 const path = require('path');
 
 function activate(context) {
+    const commandHandler = vscode.commands.registerCommand('stackscript-activate', () => {
+        vscode.window.showInformationMessage('STACKSCRIPT activated');
+    })
+    context.subscriptions.push(commandHandler);
     const provider = vscode.languages.registerCompletionItemProvider('stackscript', {
         provideCompletionItems(document, position) {
             const completions = [];
@@ -23,7 +27,9 @@ function activate(context) {
 
             return completions;
         }
-    });
+    }
+    
+);
 
     const diagnosticCollection = vscode.languages.createDiagnosticCollection('stackscript');
     context.subscriptions.push(diagnosticCollection);

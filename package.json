@@ -4,6 +4,7 @@
     "description": "VS Code extension for STACKSCRIPT language",
     "version": "0.0.1",
     "publisher": "STACKSCRIPT-official",
+    "icon": "icon.png",
     "repository": {
         "type": "git",
         "url": "https://github.com/replit-user/STACKSCRIPT-vscode"},
@@ -22,6 +23,18 @@
             "extensions": [".stack"],
             "configuration": "./language-configuration.json"
         }],
+        "keybindings": [{
+            "command": "stackscript-activate",
+            "key": "ctrl+a ctrl+s",
+            "linux": "ctrl+a ctrl+s",
+            "mac": "ctrl+a ctrl+s",
+            "win": "ctrl+a ctrl+s",
+            "when": "*"
+        }],
+        "commands": [{
+            "command": "stackscript-activate",
+            "title": "Activate STACKSCRIPT"
+        }],
         "grammars": [{
             "language": "stackscript",
             "scopeName": "source.stackscript",
@@ -33,7 +46,7 @@
         }]
     },
     "activationEvents": [
-        "*"
+        "onCommand:stackscript-activate"
     ],
     "main": "./extension.js"
 }
