@@ -1,52 +1,73 @@
 {
-    "name": "stackscript",
-    "displayName": "STACKSCRIPT",
-    "description": "VS Code extension for STACKSCRIPT language",
-    "version": "0.0.1",
-    "publisher": "STACKSCRIPT-official",
-    "icon": "icon.png",
-    "repository": {
-        "type": "git",
-        "url": "https://github.com/replit-user/STACKSCRIPT-vscode"},
-    "engines": {
-        "vscode": "^1.78.0"
-    },
-    "categories": [
-        "Programming Languages",
-        "Snippets",
-        "Linters"
-    ],
-    "contributes": {
-        "languages": [{
-            "id": "stackscript",
-            "aliases": ["STACKSCRIPT", "stackscript"],
-            "extensions": [".stack"],
-            "configuration": "./language-configuration.json"
-        }],
-        "keybindings": [{
-            "command": "stackscript-activate",
-            "key": "ctrl+a ctrl+s",
-            "linux": "ctrl+a ctrl+s",
-            "mac": "ctrl+a ctrl+s",
-            "win": "ctrl+a ctrl+s",
-            "when": "*"
-        }],
-        "commands": [{
-            "command": "stackscript-activate",
-            "title": "Activate STACKSCRIPT"
-        }],
-        "grammars": [{
-            "language": "stackscript",
-            "scopeName": "source.stackscript",
-            "path": "./syntaxes/stackscript.tmLanguage.json"
-        }],
-        "snippets": [{
-            "language": "stackscript",
-            "path": "./snippets/snippets.json"
-        }]
-    },
-    "activationEvents": [
-        "onCommand:stackscript-activate"
-    ],
-    "main": "./extension.js"
+	"name": "stackscript",
+	"displayName": "STACKSCRIPT",
+	"description": "VS Code extension for STACKSCRIPT language",
+	"version": "1.1.0",
+	"publisher": "STACKSCRIPT-official",
+	"icon": "icon.png",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/replit-user/STACKSCRIPT-vscode"
+	},
+	"engines": {
+		"vscode": "^1.78.0"
+	},
+	"categories": [
+		"Programming Languages",
+		"Snippets",
+		"Linters"
+	],
+	"contributes": {
+		"languages": [
+			{
+				"id": "stackscript",
+				"aliases": [
+					"STACKSCRIPT",
+					"stackscript"
+				],
+				"extensions": [
+					".stack"
+				],
+				"configuration": "./language-configuration.json"
+			}
+		],
+		"keybindings": [
+			{
+				"command": "stackscript-activate",
+				"key": "ctrl+a ctrl+s",
+				"linux": "ctrl+a ctrl+s",
+				"mac": "ctrl+a ctrl+s",
+				"win": "ctrl+a ctrl+s",
+				"when": "*"
+			}
+		],
+		"commands": [
+			{
+				"command": "stackscript-activate",
+				"title": "Activate STACKSCRIPT"
+			}
+		],
+		"grammars": [
+			{
+				"language": "stackscript",
+				"scopeName": "source.stackscript",
+				"path": "./syntaxes/stackscript.tmLanguage.json"
+			}
+		],
+		"snippets": [
+			{
+				"language": "stackscript",
+				"path": "./snippets/snippets.json"
+			}
+		]
+	},
+	"activationEvents": [
+		"onCommand:stackscript-activate"
+	],
+	"main": "./extension.js",
+	"__metadata": {
+		"installedTimestamp": 1746628868237,
+		"targetPlatform": "undefined",
+		"size": 39299
+	}
 }

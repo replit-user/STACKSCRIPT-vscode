@@ -16,7 +16,7 @@ function activate(context) {
                 'CLEAR', 'COPY', 'DUP', 'SPUSH', 'PUD', 'SWAP', 'SPOUTV', 'S-SWAP',
                 'READFILE', 'WRITEFILE', 'APPENDFILE', 'DELETEFILE', 'CREATEFILE',
                 'CREATEFOLDER', 'DELETEFOLDER', 'SWAPMEM', 'CHOICE-1', 'CHOICE-2',
-                'RANDINT', 'RANDOM', 'SYSTEM', 'OUTV', 'TOP', "LOAD", "TOP"
+                'RANDINT', 'RANDOM', 'SYSTEM', 'OUTV', 'TOP', "LOAD", "TOP","ENDFUNC", "BREAKPOINT"
             ];
 
             keywords.forEach(keyword => {
