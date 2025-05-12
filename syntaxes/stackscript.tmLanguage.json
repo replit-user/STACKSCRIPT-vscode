@@ -2,7 +2,7 @@
     "scopeName": "source.stackscript",
     "patterns": [
         {
-            "match": "\\b(ADD|TOP|SUB|MUL|DIV|EXP|PUSH|POP|OUT|HALT|CALL|READ|SPREAD|JMP|JMPGT|JMPLT|JMPEQ|BOTOP|LOAD|CLEAR|COPY|DUP|SPUSH|PUD|SWAP|SPOUTV|S-SWAP|READFILE|WRITEFILE|APPENDFILE|DELETEFILE|CREATEFILE|CREATEFOLDER|DELETEFOLDER|SWAPMEM|CHOICE-1|CHOICE-2|RANDINT|RANDOM|SYSTEM|OUTV|TOP)\\b",
+            "match": "\\b(ADD|TOP|SUB|MUL|DIV|EXP|PUSH|POP|OUT|HALT|CALL|READ|SPREAD|JMP|JMPGT|JMPLT|JMPEQ|BOTOP|LOAD|CLEAR|COPY|DUP|SPUSH|PUD|SWAP|SPOUTV|S-SWAP|READFILE|WRITEFILE|APPENDFILE|DELETEFILE|CREATEFILE|CREATEFOLDER|DELETEFOLDER|SWAPMEM|CHOICE-1|CHOICE-2|RANDINT|RANDOM|SYSTEM|OUTV|TOP|SET|ENDFUNC|BREAKPOINT)\\b",
             "name": "keyword.control.stackscript"
         },
         {
@@ -14,12 +14,31 @@
             "name": "entity.name.function.stackscript"
         },
         {
-            "match": "ENDFUNC",
-            "name": "keyword.control.stackscript"
-        },
-        {
             "match": ";.*",
             "name": "comment.line.stackscript"
+        },
+        {
+            "match": "\\bSET\\s+([A-Za-z_][A-Za-z0-9_]*)",
+            "captures": {
+                "1": { "name": "keyword.control.stackscript" },
+                "2": { "name": "variable.declaration.stackscript" }
+            }
+        },
+        {
+            "begin": "%VAR<",
+            "end": ">",
+            "beginCaptures": {
+                "0": { "name": "punctuation.definition.variable.begin.stackscript" }
+            },
+            "endCaptures": {
+                "0": { "name": "punctuation.definition.variable.end.stackscript" }
+            },
+            "patterns": [
+                {
+                    "match": "[A-Za-z_][A-Za-z0-9_]*",
+                    "name": "variable.reference.stackscript"
+                }
+            ]
         }
     ]
 }
