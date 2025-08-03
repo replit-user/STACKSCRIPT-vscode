@@ -12,5 +12,16 @@
             "ENDFUNC"
         ],
         "description": "Create a new function"
+    },
+    "Namespace Template": {
+        "prefix": "ns",
+        "body": [
+            "${namespace_name}",
+            "NAMESPACE",
+            "${function_name}:",
+            ";CODE",
+            "ENDSPACE"
+        ],
+        "description": "Create a new namespace"
     }
 }
